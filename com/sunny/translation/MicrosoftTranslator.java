@@ -94,19 +94,25 @@ public class MicrosoftTranslator extends AndroidNonvisibleComponent {
                     }
                     String response = post(url.build(), text);
                     final YailDictionary dictionary = new YailDictionary();
+                    if (response.startsWith("[")){
                     JSONArray array = (JSONArray) new JSONParser().parse(response);
                     JSONObject object = (JSONObject) array.get(0);
-                    JSONArray array1 = (JSONArray) object.get("translations");
-                    for (Object o : array1) {
-                        JSONObject object1 = (JSONObject) o;
-                        dictionary.put(object1.get("to"),object1.get("text"));
-                    }
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            GotTranslation(dictionary);
+                        JSONArray array1 = (JSONArray) object.get("tranasltions");
+                        for (Object o : array1) {
+                            JSONObject object1 = (JSONObject) o;
+                            dictionary.put(object1.get("to"), object1.get("text"));
                         }
-                    });
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                GotTranslation(dictionary);
+                            }
+                        });
+                    }else{
+                        JSONObject object = (JSONObject) new JSONParser().parse(response);
+                        JSONObject object1 = (JSONObject) object.get("error");
+                        postError("Translate", String.valueOf(object1.get("message")));
+                    }
                 }catch (Exception e){
                     e.printStackTrace();
                     postError("Translate",e.getMessage() != null ? e.getMessage() : e.toString());
@@ -150,24 +156,30 @@ public class MicrosoftTranslator extends AndroidNonvisibleComponent {
                         url.addQueryParameter("to", str);
                     }
                     String response = post(url.build(), text);
-                    JSONArray array = (JSONArray) new JSONParser().parse(response);
-                    JSONObject object = (JSONObject) array.get(0);
-                    final YailDictionary dictionary = new YailDictionary();
-                    JSONArray array1 = (JSONArray) object.get("translations");
-                    for (Object o : array1) {
-                        JSONObject object1 = (JSONObject) o;
-                        dictionary.put(object1.get("to"), object1.get("text"));
-                    }
-                    final String[] str = new String[2];
-                    JSONObject object1 = (JSONObject) object.get("detectedLanguage");
-                    str[0] = (String) object1.get("language");
-                    str[1] = (String) object1.get("score");
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            GotTranslationWithLang(str[0],str[1],dictionary);
+                    if (response.startsWith("[")) {
+                        JSONArray array = (JSONArray) new JSONParser().parse(response);
+                        JSONObject object = (JSONObject) array.get(0);
+                        final YailDictionary dictionary = new YailDictionary();
+                        JSONArray array1 = (JSONArray) object.get("translations");
+                        for (Object o : array1) {
+                            JSONObject object1 = (JSONObject) o;
+                            dictionary.put(object1.get("to"), object1.get("text"));
                         }
-                    });
+                        final String[] str = new String[2];
+                        JSONObject object1 = (JSONObject) object.get("detectedLanguage");
+                        str[0] = (String) object1.get("language");
+                        str[1] = (String) object1.get("score");
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                GotTranslationWithLang(str[0], str[1], dictionary);
+                            }
+                        });
+                    }else {
+                        JSONObject object = (JSONObject) new JSONParser().parse(response);
+                        JSONObject object1 = (JSONObject) object.get("error");
+                        postError("TranslateWithLangDetection", String.valueOf(object1.get("message")));
+                    }
                 }catch (Exception e){
                     e.printStackTrace();
                     postError("TranslateWithLangDetection",e.getMessage() != null ? e.getMessage() : e.toString());
@@ -192,21 +204,27 @@ public class MicrosoftTranslator extends AndroidNonvisibleComponent {
                             .addQueryParameter("api-version", "3.0")
                             .build();
                     String response = post(url, text);
-                    final String[] str = new String[3];
-                    JSONArray array = (JSONArray) new JSONParser().parse(response);
-                    final JSONObject object = (JSONObject) array.get(0);
-                    str[0] = (String) object.get("language");
-                    str[1] = (String) object.get("score");
-                    final boolean bool = (boolean) object.get("isTranslationSupported");
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            LanguageDetected(
-                                    str[0],
-                                    str[1],
-                                    bool);
-                        }
-                    });
+                    if (response.startsWith("[")) {
+                        final String[] str = new String[3];
+                        JSONArray array = (JSONArray) new JSONParser().parse(response);
+                        final JSONObject object = (JSONObject) array.get(0);
+                        str[0] = (String) object.get("language");
+                        str[1] = (String) object.get("score");
+                        final boolean bool = (boolean) object.get("isTranslationSupported");
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                LanguageDetected(
+                                        str[0],
+                                        str[1],
+                                        bool);
+                            }
+                        });
+                    }else {
+                        JSONObject object = (JSONObject) new JSONParser().parse(response);
+                        JSONObject object1 = (JSONObject) object.get("error");
+                        postError("DetectLanguage", String.valueOf(object1.get("message")));
+                    }
                 }catch (Exception e){
                     e.printStackTrace();
                     postError("DetectLanguage",e.getMessage() != null ? e.getMessage() : e.toString());
